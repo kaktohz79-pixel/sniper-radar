@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TECH-RADAR // BENTO OS</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #09090B;
+      --surface: #121216;
+      --surface-2: #19191F;
+      --border: #26262E;
+      --text: #F4F4F6;
+      --muted: #8E8E9A;
+      --accent: #FF2A3C;
+      --accent-dim: rgba(255, 42, 60, 0.14);
+      --green: #10B981;
+      --green-dim: rgba(16, 185, 129, 0.14);
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+      --sans: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      padding: 14px 14px 36px;
+      background-color: var(--bg);
+      background-image: radial-gradient(#1f1f27 1px, transparent 1px);
+      background-size: 16px 16px;
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 540px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .bento-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot-pulse {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 1.8s infinite;
+    }
+
+    .dot-pulse.online {
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.85); }
+    }
+
+    .status-pill {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .kpi-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px 11px;
+    }
+
+    .kpi-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-val {
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .kpi-val.green { color: var(--green); }
+    .kpi-val.accent { color: var(--accent); }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 11px 13px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 12px;
+      padding: 10px 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: transform 0.08s ease, background 0.15s ease;
+    }
+
+    .btn:active { transform: scale(0.97); }
+
+    .btn-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn-green {
+      background: var(--green-dim);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--green);
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 11px;
+      border-radius: 9px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    .chart-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .chart-title {
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chart-price {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--green);
+      white-space: nowrap;
+    }
+
+    #chartSvg {
+      width: 100%;
+      height: 125px;
+      display: block;
+      background: var(--surface-2);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .chart-stats {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .item-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .item-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      transition: border-color 0.15s ease;
+    }
+
+    .item-card.selected {
+      border-color: var(--accent);
+    }
+
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .item-name {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 8px;
+      font-family: var(--mono);
+    }
+
+    .cur-price {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .old-price {
+      font-size: 12px;
+      color: var(--muted);
+      text-decoration: line-through;
+    }
+
+    .delta-pill {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
+    }
+
+    .delta-pill.drop {
+      background: var(--green-dim);
+      color: var(--green);
+    }
+
+    .delta-pill.up {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .item-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 20px 10px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1E1E26;
+      border: 1px solid var(--accent);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 9px 14px;
+      border-radius: 12px;
+      opacity: 0;
+      transition: all 0.25s ease;
+      z-index: 99;
+      max-width: 90vw;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Top Header -->
+    <div class="bento-card">
+      <div class="header-row">
+        <div class="brand-title">
+          <span id="statusDot" class="dot-pulse"></span>
+          <span>TECH-RADAR // OS</span>
+        </div>
+        <button id="apiPill" class="status-pill" onclick="promptApiUrl()">CONNECTING...</button>
+      </div>
+    </div>
+
+    <!-- KPI Bento Row -->
+    <div class="kpi-grid">
+      <div class="kpi-box">
+        <div class="kpi-label">Целей</div>
+        <div id="kpiCount" class="kpi-val">0</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Экономия</div>
+        <div id="kpiSaved" class="kpi-val green">0 ₴</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-label">Макс. дроп</div>
+        <div id="kpiDrop" class="kpi-val accent">0%</div>
+      </div>
+    </div>
+
+    <!-- Search & Instant Add -->
+    <div class="bento-card">
+      <div class="section-head">
+        <span>⚡ Быстрый скан рынка</span>
+        <span>RZ + HL</span>
+      </div>
+      <div class="search-box">
+        <input id="searchInput" class="search-input" type="text" placeholder="Xiaomi 17 12/512, Poco F7..." onkeydown="if(event.key==='Enter') runSearch()" />
+        <button class="btn btn-accent" onclick="runSearch()">СКАН</button>
+      </div>
+      <div id="searchResults" class="item-list" style="margin-top: 10px;"></div>
+    </div>
+
+    <!-- Interactive Price Chart -->
+    <div class="bento-card" id="chartCard" style="display:none;">
+      <div class="section-head">
+        <span>📊 Телеметрия цены</span>
+        <span id="chartShop">MARKET</span>
+      </div>
+      <div class="chart-meta">
+        <div id="chartTitle" class="chart-title">—</div>
+        <div id="chartPrice" class="chart-price">0 ₴</div>
+      </div>
+      <svg id="chartSvg" viewBox="0 0 360 125" preserveAspectRatio="none"></svg>
+      <div class="chart-stats">
+        <span id="chartMin">Мин: —</span>
+        <span id="chartTarget">Цель: —</span>
+        <span id="chartMax">Макс: —</span>
+      </div>
+    </div>
+
+    <!-- Active Radar Items -->
+    <div class="bento-card">
+      <div class="section-head">
+        <span>📡 Активный радар</span>
+        <button class="btn btn-sm" onclick="loadItems(true)">🔄 ОБНОВИТЬ</button>
+      </div>
+      <div id="radarList" class="item-list">
+        <div class="empty-state">Загрузка телеметрии...</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      try {
+        tg.setHeaderColor('#09090B');
+        tg.setBackgroundColor('#09090B');
+      } catch (e) {}
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    let API_BASE = (params.get('api') || localStorage.getItem('tech_radar_api') || '').replace(/\/+$/, '');
+    if (params.get('api')) {
+      localStorage.setItem('tech_radar_api', API_BASE);
+    }
+
+    const TG_USER_ID = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : '';
+    let radarItems = [];
+    let selectedItemId = null;
+    let searchCache = [];
+
+    function haptic(type = 'light') {
+      try {
+        if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(type);
+      } catch (e) {}
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2600);
+    }
+
+    function fmtPrice(val) {
+      const num = Math.round(Number(val) || 0);
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₴';
+    }
+
+    function esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function openExternal(url) {
+      haptic('light');
+      if (tg && tg.openLink) {
+        tg.openLink(url);
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+
+    function promptApiUrl() {
+      const entered = prompt('Вставь HTTPS URL Cloudflare туннеля (https://....trycloudflare.com):', API_BASE);
+      if (entered && entered.trim().startsWith('https://')) {
+        API_BASE = entered.trim().replace(/\/+$/, '');
+        localStorage.setItem('tech_radar_api', API_BASE);
+        loadItems(true);
+      }
+    }
+
+    async function apiFetch(path, options = {}) {
+      if (!API_BASE) throw new Error('Не задан ?api= URL');
+      const sep = path.includes('?') ? '&' : '?';
+      const fullPath = TG_USER_ID ? `${API_BASE}${path}${sep}user_id=${TG_USER_ID}` : `${API_BASE}${path}`;
+      const headers = {
+        'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+        ...(options.headers || {}),
+      };
+      if (tg && tg.initData) {
+        headers['X-Telegram-Init-Data'] = tg.initData;
+      }
+      if (options.body && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+      }
+      const res = await fetch(fullPath, { ...options, headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    }
+
+    function setConnectionStatus(online, label) {
+      const dot = document.getElementById('statusDot');
+      const pill = document.getElementById('apiPill');
+      if (online) {
+        dot.classList.add('online');
+        pill.textContent = label || 'TUNNEL ONLINE';
+      } else {
+        dot.classList.remove('online');
+        pill.textContent = label || 'NO TUNNEL';
+      }
+    }
+
+    async function loadItems(notify = false) {
+      if (!API_BASE) {
+        setConnectionStatus(false, 'TAP TO SET API');
+        document.getElementById('radarList').innerHTML =
+          '<div class="empty-state">Открой Mini App через кнопку меню бота, чтобы подтянулся свежий туннель.</div>';
+        return;
+      }
+
+      try {
+        const data = await apiFetch('/api/items');
+        radarItems = Array.isArray(data) ? data : (data.items || []);
+        setConnectionStatus(true, 'TUNNEL ONLINE');
+        renderKpis();
+        renderRadarList();
+        if (radarItems.length > 0) {
+          const active = radarItems.find(i => i.id === selectedItemId) || radarItems[0];
+          selectChartItem(active.id, false);
+        } else {
+          document.getElementById('chartCard').style.display = 'none';
+        }
+        if (notify) showToast('Телеметрия обновлена');
+      } catch (err) {
+        setConnectionStatus(false, 'OFFLINE');
+        document.getElementById('radarList').innerHTML =
+          `<div class="empty-state">Нет связи с Termux API (${esc(err.message)}).<br>Перезапусти ./run.sh и открой меню бота заново.</div>`;
+      }
+    }
+
+    function renderKpis() {
+      document.getElementById('kpiCount').textContent = radarItems.length;
+      let totalSaved = 0;
+      let maxDropPct = 0;
+
+      radarItems.forEach(item => {
+        const initP = Number(item.initial_price || item.current_price || 0);
+        const curP = Number(item.current_price || 0);
+        if (initP > curP) {
+          totalSaved += (initP - curP);
+          const pct = ((initP - curP) / initP) * 100;
+          if (pct > maxDropPct) maxDropPct = pct;
+        }
+      });
+
+      document.getElementById('kpiSaved').textContent = fmtPrice(totalSaved);
+      document.getElementById('kpiDrop').textContent = maxDropPct > 0 ? `-${maxDropPct.toFixed(1)}%` : '0%';
+    }
+
+    function renderRadarList() {
+      const box = document.getElementById('radarList');
+      if (!radarItems.length) {
+        box.innerHTML = '<div class="empty-state">Радар пуст. Найди смартфон в поиске выше и добавь его в 1 тап.</div>';
+        return;
+      }
+
+      box.innerHTML = radarItems.map(item => {
+        const initP = Number(item.initial_price || item.current_price);
+        const curP = Number(item.current_price);
+        const diff = curP - initP;
+        const pct = initP > 0 ? ((diff / initP) * 100).toFixed(1) : '0.0';
+        let deltaClass = '';
+        let deltaText = '0%';
+        if (diff <= -1) {
+          deltaClass = 'drop';
+          deltaText = `-${fmtPrice(Math.abs(diff))} (${pct}%)`;
+        } else if (diff >= 1) {
+          deltaClass = 'up';
+          deltaText = `+${fmtPrice(diff)} (+${pct}%)`;
+        }
+
+        const src = item.source === 'Hotline' ? '⚡ Hotline' : '🛒 Rozetka';
+        const targetBadge = item.target_price ? `🎯 ${fmtPrice(item.target_price)}` : '🔔 Любой спад';
+        const isSelected = item.id === selectedItemId ? 'selected' : '';
+
+        return `
+          <div class="item-card ${isSelected}" onclick="selectChartItem(${item.id}, true)">
+            <div class="item-top">
+              <div class="item-name">${esc(item.title)}</div>
+              <span class="badge">${src}</span>
+            </div>
+            <div class="price-row">
+              <span class="cur-price">${fmtPrice(curP)}</span>
+              ${Math.abs(diff) >= 1 ? `<span class="old-price">${fmtPrice(initP)}</span>` : ''}
+              <span class="delta-pill ${deltaClass}">${deltaText}</span>
+            </div>
+            <div class="item-actions" onclick="event.stopPropagation()">
+              <span class="badge">${targetBadge}</span>
+              <button class="btn btn-sm" onclick="openExternal('${esc(item.url)}')">↗ Магазин</button>
+              <button class="btn btn-sm" onclick="refreshOne(${item.id})">🔄</button>
+              <button class="btn btn-sm" onclick="deleteOne(${item.id})">🗑</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectChartItem(id, vibrate = true) {
+      if (vibrate) haptic('light');
+      selectedItemId = id;
+      renderRadarList();
+      const item = radarItems.find(i => i.id === id);
+      if (!item) return;
+
+      const card = document.getElementById('chartCard');
+      card.style.display = 'block';
+      document.getElementById('chartTitle').textContent = item.title;
+      document.getElementById('chartPrice').textContent = fmtPrice(item.current_price);
+      document.getElementById('chartShop').textContent = (item.best_shop || item.source || 'MARKET').toUpperCase();
+      document.getElementById('chartMin').textContent = `Мин: ${fmtPrice(item.min_price)}`;
+      document.getElementById('chartMax').textContent = `Макс: ${fmtPrice(item.max_price)}`;
+      document.getElementById('chartTarget').textContent = item.target_price ? `Цель: ${fmtPrice(item.target_price)}` : 'Цель: авто';
+
+      const hist = Array.isArray(item.history) && item.history.length
+        ? item.history.map(h => Number(h.price))
+        : [Number(item.initial_price || item.current_price), Number(item.current_price)];
+
+      if (hist.length === 1) hist.push(hist[0]);
+
+      const W = 360, H = 125, PAD = 14;
+      const minV = Math.min(...hist, item.target_price ? Number(item.target_price) : Infinity);
+      const maxV = Math.max(...hist);
+      const span = Math.max(maxV - minV, 1);
+
+      const coords = hist.map((val, idx) => {
+        const x = PAD + (idx / (hist.length - 1)) * (W - PAD * 2);
+        const y = H - PAD - ((val - minV) / span) * (H - PAD * 2);
+        return [x, y];
+      });
+
+      const linePoints = coords.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+      const areaPoints = `${PAD},${H - PAD} ${linePoints} ${W - PAD},${H - PAD}`;
+
+      let targetLine = '';
+      if (item.target_price) {
+        const ty = H - PAD - ((Number(item.target_price) - minV) / span) * (H - PAD * 2);
+        targetLine = `<line x1="${PAD}" y1="${ty.toFixed(1)}" x2="${W - PAD}" y2="${ty.toFixed(1)}" stroke="#FF2A3C" stroke-width="1.2" stroke-dasharray="4 4" />`;
+      }
+
+      const dots = coords.map((p, idx) => {
+        const isLast = idx === coords.length - 1;
+        return `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${isLast ? 4 : 2.5}" fill="${isLast ? '#10B981' : '#F4F4F6'}" />`;
+      }).join('');
+
+      document.getElementById('chartSvg').innerHTML = `
+        <defs>
+          <linearGradient id="radarGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#10B981" stop-opacity="0.32" />
+            <stop offset="100%" stop-color="#10B981" stop-opacity="0.0" />
+          </linearGradient>
+        </defs>
+        ${targetLine}
+        <polygon points="${areaPoints}" fill="url(#radarGrad)" />
+        <polyline fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points="${linePoints}" />
+        ${dots}
+      `;
+    }
+
+    async function runSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+      haptic('medium');
+      const box = document.getElementById('searchResults');
+      box.innerHTML = '<div class="empty-state">Сканирую Rozetka и Hotline...</div>';
+
+      try {
+        const data = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
+        searchCache = Array.isArray(data) ? data : (data.results || []);
+        if (!searchCache.length) {
+          box.innerHTML = '<div class="empty-state">По точному запросу моделей не найдено.</div>';
+          return;
+        }
+        box.innerHTML = searchCache.slice(0, 6).map((item, idx) => {
+          const src = item.source === 'Hotline' ? '⚡ Hotline' : '🛒 Rozetka';
+          return `
+            <div class="item-card">
+              <div class="item-top">
+                <div class="item-name">${esc(item.title)}</div>
+                <span class="badge">${src}</span>
+              </div>
+              <div class="price-row">
+                <span class="cur-price">${fmtPrice(item.price)}</span>
+              </div>
+              <div class="item-actions">
+                <button class="btn btn-green btn-sm" onclick="addFromSearch(${idx})">+ В радар</button>
+                <button class="btn btn-sm" onclick="openExternal('${esc(item.url)}')">↗ Открыть</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        box.innerHTML = `<div class="empty-state">Ошибка поиска: ${esc(err.message)}</div>`;
+      }
+    }
+
+    async function addFromSearch(idx) {
+      const item = searchCache[idx];
+      if (!item) return;
+      haptic('medium');
+      try {
+        await apiFetch('/api/items', {
+          method: 'POST',
+          body: JSON.stringify({
+            ...item,
+            user_id: TG_USER_ID || undefined,
+          }),
+        });
+        showToast('Добавлено на радар!');
+        await loadItems(false);
+      } catch (err) {
+        showToast(`Ошибка: ${err.message}`);
+      }
+    }
+
+    async function refreshOne(id) {
+      haptic('light');
+      showToast('Проверяю свежий прайс...');
+      try {
+        await apiFetch(`/api/items/${id}/refresh`, { method: 'POST' });
+        await loadItems(true);
+      } catch (err) {
+        showToast(`Ошибка обновления: ${err.message}`);
+      }
+    }
+
+    async function deleteOne(id) {
+      haptic('medium');
+      try {
+        await apiFetch(`/api/items/${id}`, { method: 'DELETE' });
+        showToast('Снято с радара');
+        await loadItems(false);
+      } catch (err) {
+        showToast(`Ошибка удаления: ${err.message}`);
+      }
+    }
+
+    loadItems(false);
+  </script>
+</body>
+</html>
