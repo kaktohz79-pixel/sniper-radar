@@ -703,9 +703,9 @@
 
       try {
         const data = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
-        searchCache = Array.isArray(data) ? data : (data.results || []);
+        searchCache = Array.isArray(data) ? data : (data.items || data.results || []);
         if (!searchCache.length) {
-          box.innerHTML = '<div class="empty-state">По точному запросу моделей не найдено.</div>';
+          box.innerHTML = `<div class="empty-state">По точному запросу моделей не найдено.</div>`;
           return;
         }
         box.innerHTML = searchCache.slice(0, 6).map((item, idx) => {
